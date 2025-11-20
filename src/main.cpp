@@ -139,7 +139,7 @@ int main()
                                    (long long)p[k] * AF[c[k]][c[j]] * p[j];
 
         // Tie-breaking for Lexicographical Order
-        if (current_energy > max_energy)
+        if (current_energy >= max_energy)
         {
           max_energy = current_energy;
           best_k = k;
