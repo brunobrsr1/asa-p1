@@ -153,4 +153,16 @@ int main()
   // 6. Output Result
   // Total Energy
   cout << dp[0][n + 1] << endl;
+
+  // Reconstruct Sequence
+  build_sequence(0, n + 1);
+
+  // Print Sequence with correct spacing
+  for (size_t i = 0; i < result_sequence.size(); i++)
+  {
+    cout << result_sequence[i] << (i == result_sequence.size() - 1 ? "" : " ");
+  }
+  cout << endl;
+
+  return 0;
 }
