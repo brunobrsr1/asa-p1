@@ -112,4 +112,45 @@ int main()
   // Size (N+2) x (N+2)
   dp.assign(n + 2, vector<long long>(n + 2, 0));
   root.assign(n + 2, vector<int>(n + 2, 0));
+
+  // 5. DP Algorithm (Iterative)
+  // 'len' is the length of the interval being considered (distance between i and j)
+  for (int len = 2; len <= n + 1; len++)
+  {
+    // 'i' is the start of the interval
+    for (int i = 0; i <= n + 1 - len; i++)
+    {
+      int j = i + len; // 'j' is the end of the interval
+
+      long long max_energy = -1;
+      int best_k = -1;
+
+      // Iterate through all possible 'k' between i and j
+      // 'k' represents the LAST amino acid removed in the interval (i, j)
+      // When 'k' is removed, its neighbors are exactly 'i' and 'j'
+      for (int k = i + 1; k < j; k++)
+      {
+        // E = Energy from left sub-problem + Energy from right sub-problem +
+        //    Potential(i) * Affinity(i, k) * Potential(k) +
+        //    Potential(k) * Affinity(k, j) * Potential(j)
+
+        long long current_energy = dp[i][k] + dp[k][j] +
+                                   (long long)p[i] * AF[c[i]][c[k]] * p[k] +
+                                   (long long)p[k] * AF[c[k]][c[j]] * p[j];
+
+        // Tie-breaking for Lexicographical Order
+        if (current_energy > max_energy)
+        {
+          max_energy = current_energy;
+          best_k = k;
+        }
+      }
+      dp[i][j] = max_energy;
+      root[i][j] = best_k;
+    }
+  }
+
+  // 6. Output Result
+  // Total Energy
+  cout << dp[0][n + 1] << endl;
 }
