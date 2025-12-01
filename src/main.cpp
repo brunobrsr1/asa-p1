@@ -12,6 +12,9 @@
 
 using namespace std;
 
+// Maximum chain length
+const int MAXN = 2005;
+
 // Biochemical classes mapping
 // P=0, N=1, A=2, B=3, T=4
 int get_class_index(char c)
@@ -51,11 +54,11 @@ int AF[5][5] = {
 
 // Global variables
 int n;
-vector<int> p;                // Potentials
-vector<int> c;                // Classes
-vector<vector<long long>> dp; // DP Table (Max Energy)
-vector<vector<int>> root;     // Roots table for solution reconstruction (index k)
-vector<int> result_sequence;  // To store the final output order
+int p[MAXN];                 // Potentials
+int c[MAXN];                 // Classes
+long long dp[MAXN][MAXN];    // DP Table (Max Energy)
+int root[MAXN][MAXN];        // Roots table for solution reconstruction (index k)
+vector<int> result_sequence; // To store the final output order
 
 // Function to recontruct the sequence from the root table
 // Logic: Post-order traversal simulation (Left -> Right -> Root)
@@ -88,7 +91,6 @@ int main()
 
   // 2. Read Potentials
   // Indices 1 to N. 0 and N+1 are sentinels (guards).
-  p.resize(n + 2);
   p[0] = 1;     // Left Sentinel (Terminal)
   p[n + 1] = 1; // Right Sentinel (Terminal)
   for (int i = 1; i <= n; i++)
@@ -97,10 +99,8 @@ int main()
   }
 
   // 3. Read Classes
-  c.resize(n + 2);
   c[0] = 4;     // T (Terminal)
   c[n + 1] = 4; // T (Terminal)
-
   string s;
   cin >> s;
   for (int i = 0; i < n; i++)
@@ -108,12 +108,7 @@ int main()
     c[i + 1] = get_class_index(s[i]);
   }
 
-  // 4. Initialize DP tables
-  // Size (N+2) x (N+2)
-  dp.assign(n + 2, vector<long long>(n + 2, 0));
-  root.assign(n + 2, vector<int>(n + 2, 0));
-
-  // 5. DP Algorithm (Iterative)
+  // 4. DP Algorithm (Iterative)
   // 'len' is the length of the interval being considered (distance between i and j)
   for (int len = 2; len <= n + 1; len++)
   {
@@ -125,18 +120,24 @@ int main()
       long long max_energy = -1;
       int best_k = -1;
 
+      int pi = p[i];
+      int pj = p[j];
+      int ci = c[i];
+      int cj = c[j];
+
       // Iterate through all possible 'k' between i and j
       // 'k' represents the LAST amino acid removed in the interval (i, j)
       // When 'k' is removed, its neighbors are exactly 'i' and 'j'
       for (int k = i + 1; k < j; k++)
       {
+        int ck = c[k];
+        int pk = p[k];
+
         // E = Energy from left sub-problem + Energy from right sub-problem +
         //    Potential(i) * Affinity(i, k) * Potential(k) +
         //    Potential(k) * Affinity(k, j) * Potential(j)
-
-        long long current_energy = dp[i][k] + dp[k][j] +
-                                   (long long)p[i] * AF[c[i]][c[k]] * p[k] +
-                                   (long long)p[k] * AF[c[k]][c[j]] * p[j];
+        long long interaction = (long long)pk * (pi * AF[ci][ck] + AF[ck][cj] * pj);
+        long long current_energy = dp[i][k] + dp[k][j] + interaction;
 
         // Tie-breaking for Lexicographical Order
         if (current_energy >= max_energy)
@@ -155,6 +156,7 @@ int main()
   cout << dp[0][n + 1] << endl;
 
   // Reconstruct Sequence
+  result_sequence.reserve(n);
   build_sequence(0, n + 1);
 
   // Print Sequence with correct spacing
